@@ -153,7 +153,6 @@ var vm_preview = new Vue({
             for (field_name in custom_fields) {
                 jskey = custom_fields[field_name];
                 formData.append('custom_'+field_name, this.previewFormData[jskey]);
-                this.previewFormData[jskey] = field_name;
             }
 
             // obligatory data -> from upload form
@@ -203,7 +202,6 @@ var vm_preview = new Vue({
             for (field_name in custom_fields) {
                 jskey = custom_fields[field_name];
                 formData.append('custom_'+field_name, this.previewFormData[jskey]);
-                this.previewFormData[jskey] = field_name;
             }
 
             // obligatory data -> from upload form
@@ -391,15 +389,17 @@ var vm_preview = new Vue({
         }
     },
     beforeMount() {
-        // custom_fields defined in HTML
-        for (field_name in custom_fields) {
-            jskey = custom_fields[field_name];
-            this.previewFormData[jskey] = field_name;
-        }
-
         this.socket.on('data', this.processingEvent);
         this.socket.on('processing', this.processingEvent);
         this.socket.on('finished', this.finishedEvent);
+
+        // Load the default values for the custom fields.
+        // This also creates the property in previewFormData, allowing loadDataFromSession
+        // to retrieve the value from the session.
+        for (field_name in custom_fields) {
+            jskey = custom_fields[field_name];
+            this.previewFormData[jskey] = custom_fields_default[field_name];
+        }
 
         this.getServedDhoFields();
         this.getClassificationTypes();

@@ -166,7 +166,8 @@ def validate(csv_file, data):
                 })
 
     # Save invalid lines to CSV file in tmp
-    util.save_failed_csv(reader, invalid_lines, session=session)
+    if len(invalid_lines) > 0:
+        util.save_failed_csv(reader, invalid_lines, session=session)
 
     emit('finished', {
         "total": total_lines,
@@ -214,7 +215,6 @@ def submit(csv_file, data):
                 invalid_lines.append(line)
             except Exception as e:
                 invalid_lines.append(line)
-                app.logger.error(f"Unknown error occured: {e}")
             else:
                 successful_lines += 1
 
@@ -228,7 +228,8 @@ def submit(csv_file, data):
                 emit('processing', data, namespace="/preview")
 
     # Save invalid lines to CSV file in tmp
-    util.save_failed_csv(reader, invalid_lines, session=session)
+    if len(invalid_lines) > 0:
+        util.save_failed_csv(reader, invalid_lines, session=session)
 
     emit('finished', {
         'total': len(reader),

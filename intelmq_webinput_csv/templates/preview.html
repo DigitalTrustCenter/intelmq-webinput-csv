@@ -11,6 +11,12 @@
         {% endfor %}
         };
 
+        const custom_fields_default = {
+        {% for name, value in config['CUSTOM_INPUT_FIELDS'].items() %}
+            '{{ name }}': '{{ value }}',
+        {% endfor %}
+        };
+
         {# Set const for Pipeline options if configured #}
         const d_pipelines = {
             {% if config['DESTINATION_PIPELINE_QUEUE'] is mapping %}

@@ -145,8 +145,6 @@ def handle_parameters(form):
     parameters = {}
     parameters.setdefault('CUSTOM_INPUT_FIELDS', {})
 
-    parameters.setdefault('CUSTOM_INPUT_FIELDS', {})
-
     for key, default_value in app.config.items():
         parameters[key] = form.get(key, default_value)
     for key, value in PARAMETERS.items():
@@ -174,12 +172,6 @@ def handle_parameters(form):
             custom_fields = parameters.get('CUSTOM_INPUT_FIELDS', {})
             custom_fields[key] = value
 
-    # Set any custom_key fields
-    for key, value in form.items():
-        if key.startswith('custom_'):
-            key = key[7:]  # remove prefix `custom_`
-            custom_fields = parameters.get('CUSTOM_INPUT_FIELDS', {})
-            custom_fields[key] = value
     return parameters
 
 
@@ -281,7 +273,7 @@ def save_failed_csv(reader: CSV, lines: List[CSVLine], session=dict()):
         lines (List[CSVLine]): list of invalid lines
         session (dict): Flask session obj
     """
-    invalid_file = get_temp_file(filename='webinput_invalid_csv.csv')
+    invalid_file = get_temp_file(filename='webinput_invalid', prefix=session['prefix'])
 
     with invalid_file.open('w+') as f:
         # Filter out all None columns
