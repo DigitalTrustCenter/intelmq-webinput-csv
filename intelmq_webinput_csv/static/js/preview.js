@@ -25,7 +25,7 @@ var vm_preview = new Vue({
         previewFormData: {
             timezone: '+00:00',
             classificationType: 'test',
-            dryRun: true,
+            dryRun: false,
             useColumn: 0,
             columns: 'source.ip',
             pipeline: '',
