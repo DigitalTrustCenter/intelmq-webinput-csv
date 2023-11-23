@@ -43,13 +43,54 @@ If you have a local repository and you have or will do local modification, consi
 pip3 install .
 ```
 
+### File permissions
+
+The backend will write temporary (CSV) files in the IntelMQ directory VAR_STATE_PATH (default value /opt/intelmq/var/lib/intelmq/bots). Therefore the webserver running IntelMQ Webinput CSV needs to have read and write access to that directory.  
+You can change the used directory by adding VAR_STATE_PATH to the webinput_csv.conf file:
+```json
+{
+	"destination_pipeline_queue": "...",
+	"VAR_STATE_PATH": "/other/directory"
+}
+```
+
 ### Webserver configuration and permissions
 
-Configure your server to use the intelmq_webinput_csv executable as WSGI script. A configuration snippet for Apache can be found in `contrib/apache/002_intelmq_webinput_csv.conf`. Adapt the WSGIScriptAlias URL and path to your needs. On Debian systems the required wsgi package is called `libapache2-mod-wsgi-py3`
+The 0.4.0+ version of IntelMQ Webinput CSV uses [Flask-SocketIO](https://flask-socketio.readthedocs.io) for asynchronous functionality, for Flask-SocketIO deployement options see their [wiki](https://flask-socketio.readthedocs.io/en/latest/deployment.html).
+  
+An example of running gunicorn with the eventlet worker class:
+```bash
+gunicorn --worker-class eventlet -w 1 --chdir /usr/local/lib/python3.11/site-packages/ intelmq_webinput_csv.app:app --bind=0.0.0.0:8000
+```
+Change the site-packages path to the directory where your python/pip installation installs packages.
+  
+You can use nginx for example as reverse proxy. Note that Flask-SocketIO uses websockets, so we need to add an extra configuration block for the socket.
+```
+location /socket.io {
+	proxy_set_header Host $http_host;
+	proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	proxy_set_header X-Forwarded-Proto $scheme;
+	proxy_http_version 1.1;
+	proxy_buffering off;
+	proxy_set_header Upgrade $http_upgrade;
+	proxy_set_header Connection "Upgrade";
+	proxy_pass http://127.0.0.1:8000;
+}
 
-The backend needs to write `/var/lib/intelmq/webinput_csv.csv` and `/var/lib/intelmq/webinput_csv.temp` to save it's state. Both files need to be writeable by the used process.
+location / {
+	proxy_set_header Host $http_host;
+	proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	proxy_set_header X-Forwarded-Proto $scheme;
+	proxy_buffering off;
 
-**Note: IntelMQ Webinput CSV uses [Flask-SocketIO](https://flask-socketio.readthedocs.io) for asynchrous functionality, for Flask-SocketIO deployement options see their [wiki](https://flask-socketio.readthedocs.io/en/latest/deployment.html).**
+	# Ignore the default 1MB upload limit.
+	client_max_body_size 0;
+	
+	proxy_pass http://127.0.0.1:8000;
+}
+```
+  
+IntelMQ Webinput CSV will redirect to / on errors, so if you run under a subdirectory, you must add a `proxy_redirect / /your-directory/;` statement to the second location block.
 
 # Afterwards
 
