@@ -58,6 +58,8 @@ def form():
         session['prefix'] = secrets.token_hex(8)
         session.permanent = True
 
+    util.cleanup_tempdir()
+
     return render_template('upload.html')
 
 
