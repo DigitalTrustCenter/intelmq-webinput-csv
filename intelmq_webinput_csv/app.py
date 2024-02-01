@@ -197,7 +197,10 @@ def submit(csv_file, data):
 
     successful_lines = 0
     invalid_lines = []
-    parameters['time_observation'] = DateTime().generate_datetime_now()
+
+    # If time.observation is not set using a custom field, use the current time as observation time.
+    if 'time.observation' not in parameters:
+        parameters['time.observation'] = DateTime().generate_datetime_now()
 
     with CSV.create(csv_file, **parameters) as reader:
         segment_size = util.calculate_segments(len(reader))
